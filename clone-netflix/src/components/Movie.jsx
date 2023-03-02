@@ -1,8 +1,35 @@
 import React, { useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+// เมื่อกดหัวใจ จะเก็บ Movie เข้าไปใน Account User
+import { UserAuth } from "../context/AuthContext";
+import { db } from "../Firebase";
+import { arrayUnion, doc, updateDoc } from "@firebase/firestore";
 
 const Movie = ({ item }) => {
   const [like, setLike] = useState(false);
+  // เมื่อกดหัวใจ จะเก็บ Movie เข้าไปใน Account User
+  const [saved, setSaved] = useState(false);
+  const { user } = UserAuth();
+
+  const movieID = doc(db, "users", `${user?.email}`);
+
+  const saevShow = async () => {
+    if (user?.email) {
+      // like = fales
+      setLike(!like);
+      setSaved(true);
+      await updateDoc(movieID, {
+        savedShows: arrayUnion({
+          id: item.id,
+          title: item.title,
+          img: item.backdrop_path,
+        }),
+      });
+    } else {
+      alert("Please log in to save a movie");
+    }
+  };
+
   return (
     <div className="w-[160px] sm:w-[200px] md:w-[240px] lg:w-[280px] inline-block cursor-pointer relative p-2">
       <img
@@ -14,7 +41,7 @@ const Movie = ({ item }) => {
         <p className="white-space-normal text-xs md:text-sm font-bold flex justify-center items-center h-full text-center">
           {item?.title}
         </p>
-        <p>
+        <p onClick={saevShow}>
           {like ? (
             <FaHeart className="absolute top-4 right-5 text-gray-300" />
           ) : (
